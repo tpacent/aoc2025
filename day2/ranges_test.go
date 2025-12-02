@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestSolveDay1Part1(t *testing.T) {
+func TestSolveDay2Part1(t *testing.T) {
 	line := getLine(t, "input.txt")
 	actual := day2.SumInvalidIDHalves(day2.ParseRanges(line))
 	t.Log(actual)

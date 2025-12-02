@@ -35,11 +35,7 @@ func FindInvalidIDs(lower, upper int) []int {
 func FindInvalidIDLen(lower, upper, chunklen int) (ids []int) {
 	lower = max(10, lower)
 
-	for {
-		if lower > upper {
-			break
-		}
-
+	for lower <= upper {
 		fromstr := strconv.Itoa(lower)
 
 		if len(fromstr)%chunklen != 0 {
@@ -83,11 +79,7 @@ func SumInvalidIDHalves(ranges []Range) (total int) {
 }
 
 func FindInvalidHalves(lower, upper int) (ids []int) {
-	for {
-		if lower > upper {
-			break
-		}
-
+	for lower <= upper {
 		if lowerstr := strconv.Itoa(lower); len(lowerstr)%2 == 0 {
 			subrange := FindInvalidIDLen(lower, min(upper, lib.Pow(10, len(lowerstr))-1), len(lowerstr)/2)
 			ids = append(ids, subrange...)
