@@ -44,10 +44,9 @@ func FindInvalidIDLen(lower, upper, chunklen int) (ids []int) {
 		}
 
 		chunk := fromstr[:chunklen]
-		n := lib.MustAtoi(chunk)
 		upperBound := lib.Pow(10, len(chunk))
 
-		for n < upperBound {
+		for n := lib.MustAtoi(chunk); n < upperBound; n++ {
 			nstr := strconv.Itoa(n)
 			idstr := strings.Repeat(nstr, len(fromstr)/chunklen)
 			id := lib.MustAtoi(idstr)
@@ -59,8 +58,6 @@ func FindInvalidIDLen(lower, upper, chunklen int) (ids []int) {
 			if id >= lower {
 				ids = append(ids, id)
 			}
-
-			n++
 		}
 
 		lower = lib.Pow(10, len(fromstr))
@@ -81,7 +78,8 @@ func SumInvalidIDHalves(ranges []Range) (total int) {
 func FindInvalidHalves(lower, upper int) (ids []int) {
 	for lower <= upper {
 		if lowerstr := strconv.Itoa(lower); len(lowerstr)%2 == 0 {
-			subrange := FindInvalidIDLen(lower, min(upper, lib.Pow(10, len(lowerstr))-1), len(lowerstr)/2)
+			upto := min(upper, lib.Pow(10, len(lowerstr))-1)
+			subrange := FindInvalidIDLen(lower, upto, len(lowerstr)/2)
 			ids = append(ids, subrange...)
 		}
 
@@ -108,16 +106,4 @@ func ParseRanges(line string) (ranges []Range) {
 	}
 
 	return
-}
-
-func ClampRangeEven(r Range) Range {
-	if loDigits := lib.NumDigits(r.Lo); loDigits%2 != 0 {
-		r.Lo = min(r.Hi, lib.Pow(10, loDigits))
-	}
-
-	if hiDigits := lib.NumDigits(r.Hi); hiDigits%2 != 0 {
-		r.Hi = max(r.Lo, lib.Pow(10, hiDigits-1)-1)
-	}
-
-	return r
 }
