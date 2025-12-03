@@ -9,29 +9,22 @@ import (
 
 func Joltage(r io.Reader, size int) (total int) {
 	for digits := range ParseInput(r) {
-		total += MaxNumber(digits, size)
+		total += maxNumber(digits, size)
 	}
 	return
 }
 
-func MaxNumber(digits []uint8, size int) (value int) {
-	num := make([]uint8, 0, size)
-
-	for size > 0 {
-		index := MaxIndex(digits[:len(digits)-size+1])
-		num = append(num, digits[index])
-		digits = digits[index+1:]
-		size--
+func maxNumber(digits []uint8, size int) (value int) {
+	if size == 0 {
+		return 0
 	}
-
-	for index, n := range num {
-		value += lib.Pow(10, len(num)-index-1) * int(n)
-	}
-
+	index := maxIndex(digits[:len(digits)-size+1])
+	value += lib.Pow(10, size-1) * int(digits[index])
+	value += maxNumber(digits[index+1:], size-1)
 	return
 }
 
-func MaxIndex(digits []uint8) (index int) {
+func maxIndex(digits []uint8) (index int) {
 	var value uint8
 
 	for i, d := range digits {
@@ -45,27 +38,22 @@ func MaxIndex(digits []uint8) (index int) {
 }
 
 func ParseInput(r io.Reader) iter.Seq[[]uint8] {
-	scanner := bufio.NewScanner(r)
-
 	return func(yield func([]uint8) bool) {
-		for scanner.Scan() {
+		for scanner := bufio.NewScanner(r); scanner.Scan(); {
 			line := scanner.Text()
 
 			if len(line) == 0 {
 				continue
 			}
 
-			digits := make([]uint8, 0, len(line))
-
-			for _, c := range line {
-				digits = append(digits, uint8(lib.MustAtoi(string(c))))
+			digits := make([]uint8, len(line))
+			for index := range len(line) {
+				digits[index] = line[index] - '0'
 			}
 
 			if !yield(digits) {
 				return
 			}
-
 		}
 	}
-
 }
