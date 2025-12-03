@@ -2,14 +2,14 @@ package day1_test
 
 import (
 	"aoc2025/day1"
-	"os"
+	"aoc2025/lib"
 	"strings"
 	"testing"
 )
 
 func TestSolveDay1Part1(t *testing.T) {
 	actual := day1.CountZero(
-		day1.ParseInput(getFile(t, "input.txt")),
+		day1.ParseInput(lib.GetFile(t, "input.txt")),
 		day1.NewDial(50, 100),
 		false,
 	)
@@ -18,20 +18,11 @@ func TestSolveDay1Part1(t *testing.T) {
 
 func TestSolveDay1Part2(t *testing.T) {
 	actual := day1.CountZero(
-		day1.ParseInput(getFile(t, "input.txt")),
+		day1.ParseInput(lib.GetFile(t, "input.txt")),
 		day1.NewDial(50, 100),
 		true,
 	)
 	t.Log(actual)
-}
-
-func getFile(t *testing.T, path string) *os.File {
-	file, err := os.Open(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { _ = file.Close() })
-	return file
 }
 
 const example = `

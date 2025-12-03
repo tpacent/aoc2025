@@ -20,10 +20,10 @@ func SumInvalidIDs(ranges []Range) (total int) {
 }
 
 func FindInvalidIDs(lower, upper int) []int {
-	upperstr := strconv.Itoa(upper)
-	ids := map[int]struct{}{}
+	upperlen := lib.NumDigits(upper)
+	ids := make(map[int]struct{})
 
-	for chunklen := 1; chunklen <= len(upperstr)/2; chunklen++ {
+	for chunklen := 1; chunklen <= upperlen/2; chunklen++ {
 		for _, id := range FindInvalidIDLen(lower, upper, chunklen) {
 			ids[id] = struct{}{}
 		}
@@ -77,9 +77,9 @@ func SumInvalidIDHalves(ranges []Range) (total int) {
 
 func FindInvalidHalves(lower, upper int) (ids []int) {
 	for lower <= upper {
-		if lowerstr := strconv.Itoa(lower); len(lowerstr)%2 == 0 {
-			upto := min(upper, lib.Pow(10, len(lowerstr))-1)
-			subrange := FindInvalidIDLen(lower, upto, len(lowerstr)/2)
+		if lowerlen := lib.NumDigits(lower); lowerlen%2 == 0 {
+			upto := min(upper, lib.Pow(10, lowerlen)-1)
+			subrange := FindInvalidIDLen(lower, upto, lowerlen/2)
 			ids = append(ids, subrange...)
 		}
 

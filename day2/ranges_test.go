@@ -36,7 +36,7 @@ func TestExample(t *testing.T) {
 	actual := day2.SumInvalidIDHalves(day2.ParseRanges(testRanges))
 
 	if actual != 1227775554 {
-		t.Error("unexpected value")
+		t.Errorf("unexpected value: %d", actual)
 	}
 }
 
@@ -44,6 +44,6 @@ func TestExample2(t *testing.T) {
 	actual := day2.SumInvalidIDs(day2.ParseRanges(testRanges))
 
 	if actual != 4174379265 {
-		t.Logf("unexpected value: %d", actual)
+		t.Errorf("unexpected value: %d", actual)
 	}
 }

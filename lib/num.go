@@ -25,7 +25,7 @@ func NumDigits(n int) (count int) {
 		count++
 		n /= 10
 	}
-	return
+	return max(1, count)
 }
 
 func Pow(a, b int) int {
