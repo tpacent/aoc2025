@@ -7,9 +7,7 @@ import (
 
 type Floor map[Coord]struct{}
 
-type Coord struct {
-	X, Y uint8
-}
+type Coord [2]uint8
 
 func RemoveMovables(floor Floor, limit int) (total int) {
 	for {
@@ -37,20 +35,17 @@ func RemoveMovablesStep(floor Floor, limit int) int {
 	return len(toRemove)
 }
 
-var deltas = []func(Coord) Coord{
-	func(c Coord) Coord { return Coord{c.X - 1, c.Y - 1} },
-	func(c Coord) Coord { return Coord{c.X, c.Y - 1} },
-	func(c Coord) Coord { return Coord{c.X + 1, c.Y - 1} },
-	func(c Coord) Coord { return Coord{c.X - 1, c.Y} },
-	func(c Coord) Coord { return Coord{c.X + 1, c.Y} },
-	func(c Coord) Coord { return Coord{c.X - 1, c.Y + 1} },
-	func(c Coord) Coord { return Coord{c.X, c.Y + 1} },
-	func(c Coord) Coord { return Coord{c.X + 1, c.Y + 1} },
+var deltas = []Coord{
+	// adding 255 causes uint8 to wraparound and subtract 1
+	{255, 255}, {0, 255}, {1, 255},
+	{255, 0} /*     */, {1, 0},
+	{255, 1}, {0, 1}, {1, 1},
 }
 
-func Around(floor Floor, coord Coord) (count int) {
-	for _, dfunc := range deltas {
-		if _, ok := floor[dfunc(coord)]; ok {
+func Around(floor Floor, c Coord) (count int) {
+	for _, d := range deltas {
+		item := Coord{c[0] + d[0], c[1] + d[1]}
+		if _, ok := floor[item]; ok {
 			count++
 		}
 	}
@@ -69,7 +64,7 @@ func ParseInput(r io.Reader) Floor {
 
 		for x, char := range line {
 			if char == '@' {
-				floor[Coord{X: uint8(x), Y: y}] = struct{}{}
+				floor[Coord{uint8(x), y}] = struct{}{}
 			}
 		}
 

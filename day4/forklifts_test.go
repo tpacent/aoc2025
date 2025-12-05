@@ -46,6 +46,6 @@ func TestExample2(t *testing.T) {
 	floor := day4.ParseInput(bytes.NewReader([]byte(example)))
 	actual := day4.RemoveMovables(floor, 4)
 	if actual != 43 {
-		t.Log("unexpected value")
+		t.Logf("unexpected value: %d", actual)
 	}
 }
