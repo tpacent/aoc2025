@@ -7,14 +7,14 @@ import (
 	"testing"
 )
 
-func TestDay4Part1(t *testing.T) {
+func TestSolveDay4Part1(t *testing.T) {
 	file := lib.GetFile(t, "input.txt")
 	floor := day4.ParseInput(file)
 	actual := day4.RemoveMovablesStep(floor, 4)
 	t.Log(actual)
 }
 
-func TestDay4Part2(t *testing.T) {
+func TestSolveDay4Part2(t *testing.T) {
 	file := lib.GetFile(t, "input.txt")
 	floor := day4.ParseInput(file)
 	actual := day4.RemoveMovables(floor, 4)

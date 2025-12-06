@@ -7,12 +7,12 @@ import (
 	"testing"
 )
 
-func TestSolveDay1Part1(t *testing.T) {
+func TestSolveDay5Part1(t *testing.T) {
 	file := lib.GetFile(t, "input.txt")
 	t.Log(day5.CountFresh(day5.ParseInput(file)))
 }
 
-func TestSolveDay1Part2(t *testing.T) {
+func TestSolveDay5Part2(t *testing.T) {
 	file := lib.GetFile(t, "input.txt")
 	_, ranges := day5.ParseInput(file)
 	t.Log(day5.TotalFresh(ranges))
