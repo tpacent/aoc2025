@@ -3,7 +3,9 @@ package day6
 import (
 	"aoc2025/lib"
 	"bufio"
+	"bytes"
 	"io"
+	"iter"
 	"strings"
 )
 
@@ -64,46 +66,53 @@ func ParseInput(r io.Reader) (nums [][]int, ops []Op) {
 }
 
 func ParseInputCols(r io.Reader) (nums [][]int, ops []Op) {
-	var lines []string
-
+	var lines [][]byte
 	for scanner := bufio.NewScanner(r); scanner.Scan(); {
-		line := scanner.Text()
-		if len(line) == 0 {
-			continue
+		if line := scanner.Bytes(); len(line) > 0 {
+			lines = append(lines, bytes.Clone(line))
 		}
-		lines = append(lines, line)
 	}
 
-	chunk := []int{}
-	var op Op
-	lastLine := len(lines) - 1
-
-	for col := range len(lines[0]) {
-		end := true
-		last := col == len(lines[0])-1
-		digits := make([]byte, 0, len(lines))
-
-		if maybeOp := lines[lastLine][col]; maybeOp != ' ' {
-			op = Op(maybeOp)
+	var opNums []int
+	for chunk := range reverseLineSeq(lines) {
+		num, op, ok := ParseChunk(chunk)
+		if !ok {
+			continue
 		}
-
-		for row := range len(lines) - 1 {
-			if c := lines[row][col]; c != ' ' {
-				digits = append(digits, c)
-				end = last
-			}
-		}
-
-		if !end || last {
-			chunk = append(chunk, lib.MustAtoi(string(digits)))
-		}
-
-		if end {
-			nums = append(nums, chunk)
+		opNums = append(opNums, num)
+		if op == OpAdd || op == OpMul {
+			nums = append(nums, opNums)
 			ops = append(ops, op)
-			chunk = []int{}
+			opNums = nil
 		}
 	}
 
 	return
+}
+
+func ParseChunk(chunk []byte) (num int, op Op, ok bool) {
+	digits := bytes.Trim(chunk[:len(chunk)-1], " ")
+	if len(digits) == 0 {
+		return
+	}
+	num = lib.MustAtoi(string(digits))
+	op = Op(chunk[len(chunk)-1])
+	return num, op, true
+
+}
+
+func reverseLineSeq(lines [][]byte) iter.Seq[[]byte] {
+	pos := len(lines[0]) - 1
+	return func(yield func([]byte) bool) {
+		for pos >= 0 {
+			chunk := make([]byte, 0, len(lines))
+			for _, line := range lines {
+				chunk = append(chunk, line[pos])
+			}
+			if !yield(chunk) {
+				return
+			}
+			pos--
+		}
+	}
 }
