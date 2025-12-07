@@ -11,15 +11,9 @@ type Coord struct {
 	X, Y int16
 }
 
-func CountAll(mf Manifold, beam Coord, rowmax int16) (splits, total int) {
-	row := beam.Y
-	beams := map[int16]int{beam.X: 1}
-
-	for {
-		if row++; row > rowmax {
-			break
-		}
-
+func CountAll(mf Manifold, x, rowmax int16) (splits, total int) {
+	beams := map[int16]int{x: 1}
+	for row := range rowmax {
 		for x, v := range beams {
 			if _, ok := mf[Coord{x, row}]; ok {
 				splits++
@@ -29,15 +23,13 @@ func CountAll(mf Manifold, beam Coord, rowmax int16) (splits, total int) {
 			}
 		}
 	}
-
 	for _, v := range beams {
 		total += v
 	}
-
 	return
 }
 
-func ParseInput(r io.Reader) (mf Manifold, start Coord, row int16) {
+func ParseInput(r io.Reader) (mf Manifold, x, row int16) {
 	mf = make(Manifold)
 	for scanner := bufio.NewScanner(r); scanner.Scan(); {
 		line := scanner.Bytes()
@@ -52,7 +44,7 @@ func ParseInput(r io.Reader) (mf Manifold, start Coord, row int16) {
 			case '^':
 				mf[Coord{int16(col), row}] = struct{}{}
 			case 'S':
-				start = Coord{int16(col), row}
+				x = int16(col)
 			}
 		}
 	}

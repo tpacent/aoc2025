@@ -8,14 +8,14 @@ import (
 )
 
 func TestSolveDay7Part1(t *testing.T) {
-	mf, start, row := day7.ParseInput(lib.GetFile(t, "input.txt"))
-	actual, _ := day7.CountAll(mf, start, row)
+	mf, col, row := day7.ParseInput(lib.GetFile(t, "input.txt"))
+	actual, _ := day7.CountAll(mf, col, row)
 	t.Log(actual)
 }
 
 func TestSolveDay7Part2(t *testing.T) {
-	mf, start, row := day7.ParseInput(lib.GetFile(t, "input.txt"))
-	_, actual := day7.CountAll(mf, start, row)
+	mf, col, row := day7.ParseInput(lib.GetFile(t, "input.txt"))
+	_, actual := day7.CountAll(mf, col, row)
 	t.Log(actual)
 }
 
