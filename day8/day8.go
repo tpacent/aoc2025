@@ -72,10 +72,6 @@ func GetClosestPoints(points []Point) []PointPair {
 
 	for indexA := 0; indexA < len(points)-1; indexA++ {
 		for indexB := indexA + 1; indexB < len(points); indexB++ {
-			if indexA == indexB {
-				continue
-			}
-
 			pairs = append(pairs, PointPair{
 				PA:   points[indexA],
 				PB:   points[indexB],
@@ -85,7 +81,14 @@ func GetClosestPoints(points []Point) []PointPair {
 	}
 
 	slices.SortFunc(pairs, func(a, b PointPair) int {
-		return cmp.Compare(a.Dist, b.Dist)
+		switch {
+		case a.Dist < b.Dist:
+			return -1
+		case a.Dist > b.Dist:
+			return 1
+		default:
+			return 0
+		}
 	})
 
 	return pairs
