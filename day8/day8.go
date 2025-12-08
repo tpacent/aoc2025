@@ -5,7 +5,6 @@ import (
 	"bufio"
 	"cmp"
 	"io"
-	"math"
 	"slices"
 	"strings"
 )
@@ -29,7 +28,7 @@ func CalcLastJunctions(points []Point) int {
 
 	for _, pair := range GetClosestPoints(points) {
 		pts, cts := cb.AddPair(pair.PA, pair.PB)
-		if pts == len(points) && cts == 1 {
+		if cts == 1 && pts == len(points) {
 			return int(pair.PA.X) * int(pair.PB.X)
 		}
 	}
@@ -41,12 +40,11 @@ type Point struct {
 	X, Y, Z int32
 }
 
-func Dist(a, b Point) float64 {
-	return math.Sqrt(
-		math.Pow(float64(a.X-b.X), 2) +
-			math.Pow(float64(a.Y-b.Y), 2) +
-			math.Pow(float64(a.Z-b.Z), 2),
-	)
+func DistSquared(a, b Point) int {
+	x := int(a.X - b.X)
+	y := int(a.Y - b.Y)
+	z := int(a.Z - b.Z)
+	return x*x + y*y + z*z
 }
 
 func ParseInput(r io.Reader) (points []Point) {
@@ -64,9 +62,9 @@ func ParseInput(r io.Reader) (points []Point) {
 }
 
 type PointPair struct {
+	Dist int
 	PA   Point
 	PB   Point
-	Dist float64
 }
 
 func GetClosestPoints(points []Point) []PointPair {
@@ -81,7 +79,7 @@ func GetClosestPoints(points []Point) []PointPair {
 			pairs = append(pairs, PointPair{
 				PA:   points[indexA],
 				PB:   points[indexB],
-				Dist: Dist(points[indexA], points[indexB]),
+				Dist: DistSquared(points[indexA], points[indexB]),
 			})
 		}
 	}
