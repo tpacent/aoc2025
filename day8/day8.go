@@ -3,37 +3,38 @@ package day8
 import (
 	"aoc2025/lib"
 	"bufio"
-	"cmp"
+	"container/heap"
 	"io"
-	"slices"
 	"strings"
 )
 
 func CalcLargestCircuits(points []Point, connections int, limit int) (total int) {
 	cb := NewCircuitBuilder()
-	for _, pair := range GetClosestPoints(points)[:connections] {
-		cb.AddPair(pair.PA, pair.PB)
+
+	pairs := GetClosestPoints(points)
+	for range connections {
+		pair := heap.Pop(&pairs).(PointPairDist)
+		cb.AddPair(pair.PointPair)
 	}
 
 	total = 1
-	for _, stat := range cb.CircuitStats()[:limit] {
-		total *= stat.Size
+	stats := cb.CircuitStats()
+	for range limit {
+		total *= heap.Pop(&stats).(int)
 	}
-
 	return total
 }
 
 func CalcLastJunctions(points []Point) int {
 	cb := NewCircuitBuilder()
-
-	for _, pair := range GetClosestPoints(points) {
-		pts, cts := cb.AddPair(pair.PA, pair.PB)
+	pairs := GetClosestPoints(points)
+	for {
+		pair := heap.Pop(&pairs).(PointPairDist)
+		pts, cts := cb.AddPair(pair.PointPair)
 		if cts == 1 && pts == len(points) {
-			return int(pair.PA.X) * int(pair.PB.X)
+			return int(points[pair.IdxA].X) * int(points[pair.IdxB].X)
 		}
 	}
-
-	return -1
 }
 
 type Point struct {
@@ -62,54 +63,50 @@ func ParseInput(r io.Reader) (points []Point) {
 }
 
 type PointPair struct {
-	Dist int
-	PA   Point
-	PB   Point
+	IdxA int
+	IdxB int
 }
 
-func GetClosestPoints(points []Point) []PointPair {
-	pairs := make([]PointPair, 0, len(points)*len(points))
+type PointPairDist struct {
+	PointPair
+	Dist int
+}
+
+func GetClosestPoints(points []Point) PointHeap {
+	pairs := make(PointHeap, 0, lib.Pow(len(points), 2)/2)
+	heap.Init(&pairs)
 
 	for indexA := 0; indexA < len(points)-1; indexA++ {
 		for indexB := indexA + 1; indexB < len(points); indexB++ {
-			pairs = append(pairs, PointPair{
-				PA:   points[indexA],
-				PB:   points[indexB],
+			heap.Push(&pairs, PointPairDist{
+				PointPair: PointPair{
+					IdxA: indexA,
+					IdxB: indexB,
+				},
 				Dist: DistSquared(points[indexA], points[indexB]),
 			})
 		}
 	}
-
-	slices.SortFunc(pairs, func(a, b PointPair) int {
-		switch {
-		case a.Dist < b.Dist:
-			return -1
-		case a.Dist > b.Dist:
-			return 1
-		default:
-			return 0
-		}
-	})
 
 	return pairs
 }
 
 func NewCircuitBuilder() *CircuitBuilder {
 	return &CircuitBuilder{
-		pointRegistry:   make(map[Point]int),
-		circuitRegistry: make(map[int]map[Point]struct{}),
+		pointRegistry:   make(map[int]int),
+		circuitRegistry: make(map[int]map[int]struct{}),
 	}
 }
 
 type CircuitBuilder struct {
 	circuitNum      int
-	pointRegistry   map[Point]int
-	circuitRegistry map[int]map[Point]struct{}
+	pointRegistry   map[int]int
+	circuitRegistry map[int]map[int]struct{}
 }
 
-func (cb *CircuitBuilder) AddPair(a, b Point) (int, int) {
-	circuitA, hasA := cb.pointRegistry[a]
-	circuitB, hasB := cb.pointRegistry[b]
+func (cb *CircuitBuilder) AddPair(pair PointPair) (int, int) {
+	circuitA, hasA := cb.pointRegistry[pair.IdxA]
+	circuitB, hasB := cb.pointRegistry[pair.IdxB]
 	switch {
 	case hasA && hasB:
 		if circuitA != circuitB {
@@ -120,17 +117,17 @@ func (cb *CircuitBuilder) AddPair(a, b Point) (int, int) {
 			delete(cb.circuitRegistry, circuitB)
 		}
 	case hasA && !hasB:
-		cb.pointRegistry[b] = circuitA
-		cb.circuitRegistry[circuitA][b] = struct{}{}
+		cb.pointRegistry[pair.IdxB] = circuitA
+		cb.circuitRegistry[circuitA][pair.IdxB] = struct{}{}
 	case !hasA && hasB:
-		cb.pointRegistry[a] = circuitB
-		cb.circuitRegistry[circuitB][a] = struct{}{}
+		cb.pointRegistry[pair.IdxA] = circuitB
+		cb.circuitRegistry[circuitB][pair.IdxA] = struct{}{}
 	case !hasA && !hasB:
 		circuit := cb.AllocCircuit()
-		cb.pointRegistry[a] = circuit
-		cb.pointRegistry[b] = circuit
-		cb.circuitRegistry[circuit][a] = struct{}{}
-		cb.circuitRegistry[circuit][b] = struct{}{}
+		cb.pointRegistry[pair.IdxA] = circuit
+		cb.pointRegistry[pair.IdxB] = circuit
+		cb.circuitRegistry[circuit][pair.IdxA] = struct{}{}
+		cb.circuitRegistry[circuit][pair.IdxB] = struct{}{}
 	}
 
 	return len(cb.pointRegistry), len(cb.circuitRegistry)
@@ -139,20 +136,17 @@ func (cb *CircuitBuilder) AddPair(a, b Point) (int, int) {
 func (cb *CircuitBuilder) AllocCircuit() int {
 	circuit := cb.circuitNum + 1
 	cb.circuitNum = circuit
-	cb.circuitRegistry[circuit] = make(map[Point]struct{})
+	cb.circuitRegistry[circuit] = make(map[int]struct{})
 	return circuit
 }
 
-func (cb *CircuitBuilder) CircuitStats() []CircuitStat {
-	stats := make([]CircuitStat, 0, len(cb.circuitRegistry))
+func (cb *CircuitBuilder) CircuitStats() SizeHeap {
+	stats := make(SizeHeap, 0, len(cb.pointRegistry))
+	heap.Init(&stats)
 
-	for id, points := range cb.circuitRegistry {
-		stats = append(stats, CircuitStat{ID: id, Size: len(points)})
+	for _, points := range cb.circuitRegistry {
+		heap.Push(&stats, len(points))
 	}
-
-	slices.SortFunc(stats, func(a, b CircuitStat) int {
-		return cmp.Compare(b.Size, a.Size)
-	})
 
 	return stats
 }
@@ -160,4 +154,36 @@ func (cb *CircuitBuilder) CircuitStats() []CircuitStat {
 type CircuitStat struct {
 	ID   int
 	Size int
+}
+
+type PointHeap []PointPairDist
+
+func (ph PointHeap) Len() int           { return len(ph) }
+func (ph PointHeap) Less(i, j int) bool { return ph[i].Dist < ph[j].Dist }
+func (ph PointHeap) Swap(i, j int)      { ph[i], ph[j] = ph[j], ph[i] }
+func (ph *PointHeap) Push(x any) {
+	*ph = append(*ph, x.(PointPairDist))
+}
+func (ph *PointHeap) Pop() any {
+	old := *ph
+	n := len(old)
+	x := old[n-1]
+	*ph = old[0 : n-1]
+	return x
+}
+
+type SizeHeap []int
+
+func (ih SizeHeap) Len() int           { return len(ih) }
+func (ih SizeHeap) Less(i, j int) bool { return ih[i] > ih[j] }
+func (ih SizeHeap) Swap(i, j int)      { ih[i], ih[j] = ih[j], ih[i] }
+func (ih *SizeHeap) Push(x any) {
+	*ih = append(*ih, x.(int))
+}
+func (ih *SizeHeap) Pop() any {
+	old := *ih
+	n := len(old)
+	x := old[n-1]
+	*ih = old[0 : n-1]
+	return x
 }
