@@ -38,14 +38,14 @@ func CalcLastJunctions(points []Point) int {
 }
 
 type Point struct {
-	X, Y, Z float64
+	X, Y, Z int32
 }
 
 func Dist(a, b Point) float64 {
 	return math.Sqrt(
-		math.Pow(a.X-b.X, 2) +
-			math.Pow(a.Y-b.Y, 2) +
-			math.Pow(a.Z-b.Z, 2),
+		math.Pow(float64(a.X-b.X), 2) +
+			math.Pow(float64(a.Y-b.Y), 2) +
+			math.Pow(float64(a.Z-b.Z), 2),
 	)
 }
 
@@ -53,9 +53,9 @@ func ParseInput(r io.Reader) (points []Point) {
 	for scanner := bufio.NewScanner(r); scanner.Scan(); {
 		if coords := strings.Split(scanner.Text(), ","); len(coords) == 3 {
 			points = append(points, Point{
-				X: float64(lib.MustAtoi(coords[0])),
-				Y: float64(lib.MustAtoi(coords[1])),
-				Z: float64(lib.MustAtoi(coords[2])),
+				X: int32(lib.MustAtoi(coords[0])),
+				Y: int32(lib.MustAtoi(coords[1])),
+				Z: int32(lib.MustAtoi(coords[2])),
 			})
 		}
 	}
