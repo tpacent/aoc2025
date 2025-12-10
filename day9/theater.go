@@ -27,15 +27,19 @@ func GreatestArea(points []Point) (area int) {
 }
 
 func GreatestAreaInsidePerimeter(points []Point) (area int) {
+	bbox := GetBounds(points)
+	base := bbox.YMin
+	height := bbox.YMax - bbox.YMin + 1
+
 	perimeter := Perimeter(points)
-	rowPoints := RowPoints(perimeter)
-	rowRanges := RowRanges(rowPoints)
+	rowPoints := RowPoints(perimeter, base, height)
+	rowRanges := RowRanges(rowPoints, base, height)
 
 	for indexA := range len(points) - 1 {
 		for indexB := indexA + 1; indexB < len(points); indexB++ {
 			rectarea := (lib.Abs(points[indexA].X-points[indexB].X) + 1) *
 				(lib.Abs(points[indexA].Y-points[indexB].Y) + 1)
-			if rectarea > area && IsInside(points[indexA], points[indexB], rowRanges) {
+			if rectarea > area && IsInside(points[indexA], points[indexB], rowRanges, base) {
 				area = rectarea
 			}
 		}
@@ -74,9 +78,9 @@ type Range struct {
 	Upto int
 }
 
-func RowRanges(rowPoints map[int][]Point) map[int][]Range {
-	rr := make(map[int][]Range, len(rowPoints))
-	for row, points := range rowPoints {
+func RowRanges(rowPoints [][]Point, base, height int) [][]Range {
+	rr := make([][]Range, height)
+	for rowIndex, points := range rowPoints {
 
 		for len(points) > 0 {
 			rangeStart := points[0]
@@ -101,34 +105,36 @@ func RowRanges(rowPoints map[int][]Point) map[int][]Range {
 			}
 
 			points = points[index+1:]
-			rr[row] = append(rr[row], Range{rangeStart.X, rangeEnd.X})
+			rr[rowIndex] = append(rr[rowIndex], Range{rangeStart.X, rangeEnd.X})
 		}
 
 	}
 	return rr
 }
 
-func RowPoints(points []Point) map[int][]Point {
-	rp := make(map[int][]Point, len(points))
+func RowPoints(points []Point, base, rows int) [][]Point {
+	rp := make([][]Point, rows)
 
 	for _, p := range points {
-		rp[p.Y] = append(rp[p.Y], p)
+		row := p.Y - base
+		rp[row] = append(rp[row], p)
 	}
 
-	for row := range rp {
-		slices.SortFunc(rp[row], func(a, b Point) int { return cmp.Compare(a.X, b.X) })
+	for _, row := range rp {
+		slices.SortFunc(row, func(a, b Point) int { return cmp.Compare(a.X, b.X) })
 	}
 
 	return rp
 }
 
-func IsInside(p1, p2 Point, ranges map[int][]Range) bool {
+func IsInside(p1, p2 Point, ranges [][]Range, base int) bool {
 	xRange := Range{From: min(p1.X, p2.X), Upto: max(p1.X, p2.X)}
 	yMin := min(p1.Y, p2.Y)
 	yMax := max(p1.Y, p2.Y)
 
 	for row := yMin; row <= yMax; row++ {
-		if !rangeInside(xRange, ranges[row]) {
+		rowIndex := row - base
+		if !rangeInside(xRange, ranges[rowIndex]) {
 			return false
 		}
 	}
