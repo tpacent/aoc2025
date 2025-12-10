@@ -129,12 +129,9 @@ func RowPoints(points []Point, base, rows int) [][]Point {
 
 func IsInside(p1, p2 Point, ranges [][]Range, base int) bool {
 	xRange := Range{From: min(p1.X, p2.X), Upto: max(p1.X, p2.X)}
-	yMin := min(p1.Y, p2.Y)
-	yMax := max(p1.Y, p2.Y)
-
-	for row := yMin; row <= yMax; row++ {
-		rowIndex := row - base
-		if !rangeInside(xRange, ranges[rowIndex]) {
+	yRange := Range{From: min(p1.Y, p2.Y), Upto: max(p1.Y, p2.Y)}
+	for row := yRange.From; row <= yRange.Upto; row++ {
+		if !rangeInside(xRange, ranges[row-base]) {
 			return false
 		}
 	}
